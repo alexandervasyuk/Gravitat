@@ -24,6 +24,7 @@ var svg = d3.select("body").append("svg")
     .append('g')
     .call(d3.behavior.zoom().scaleExtent([1, 50]))
     .append('g')
+    .attr('class', 'external-graph')
     .on('mousedown', mousedown);
 
 svg.append("rect") // Do I still need thia?
@@ -183,21 +184,22 @@ function clicked(d) {
     var x, y, k;
 
     if (d && centered !== d) {
-        $('.temp-text-box').show()
+        //$('.temp-text-box').show()
         x = d.x;
         y = d.y;
         k = 40;
         centered = d;
         conceal(centered);
         expose(d);
-        initInternalGraph(d)
+        initInternalGraph(d,svg,false)
     } else {
-        $('.temp-text-box').hide()
+        //$('.temp-text-box').hide()
         x = width / 2;
         y = height / 2;
         k = 1;
         centered = null;
         conceal(d);
+        dissolveInternalGraph();
     }
 
     svg.transition()
@@ -298,37 +300,71 @@ function newCoordinates(oldX, oldY, distance, angle) {
     }
 }
 
-function initInternalGraph(d) {
+function initInternalGraph(d, selection, magnify) {
     var internalCenter = {
-        x: width/2,
-        y: height/2,
+        x: d.x,
+        y: d.y,
         fixed: true,
         angle: 0,
         distance: 0,
         velocity: 0.01,
-        radius:0.3
+        radius: magnify? 8 : 0.3,
+        center: true
     };
 
-    var circlingNode = {
-        x: width/2+10,
-        y: height/2+10,
+    var circlingNode1 = {
+        x: d.x,
+        y: d.y,
         fixed: false,
         angle: Math.PI/2,
-        distance: 3,
-        velocity: 0.05,
-        radius:0.3
+        distance: magnify? 300 : 3,
+        velocity: 0.04, 
+        radius: magnify? 14 : 0.4,
+        center: false
     };
 
-    var internalLink = {
+    var circlingNode2 = {
+        x: d.x,
+        y: d.y,
+        fixed: false,
+        angle: Math.PI,
+        distance: magnify? 200 : 2,
+        velocity: 0.06,
+        radius: magnify? 10 : 0.1,
+        center: false
+    };
+
+    var circlingNode3 = {
+        x: d.x,
+        y: d.y,
+        fixed: false,
+        angle: 3*Math.PI/2,
+        distance: magnify? 100: 1,
+        velocity: 0.07,
+        radius: magnify? 8 :0.3,
+        center: false
+    };
+
+    var internalLink1 = {
         source:internalCenter,
-        target:circlingNode
+        target:circlingNode1
     };
 
-    var nodes = [internalCenter, circlingNode];
-    var links = [internalLink];
+    var internalLink2 = {
+        source:internalCenter,
+        target:circlingNode2
+    };
 
-    var graph = svg.append('g')
-                    .attr('class', 'internal-graph')
+    var internalLink3 = {
+        source:internalCenter,
+        target:circlingNode3
+    };
+
+    var nodes = [internalCenter, circlingNode1,circlingNode2,circlingNode3];
+    var links = [internalLink1,internalLink2,internalLink3];
+
+    var graph = selection.append('g')
+                    .attr('class', 'internal-graph');
 
     var internalForce = d3.layout.force()
         .nodes(nodes)
@@ -352,15 +388,17 @@ function initInternalGraph(d) {
     //figure out why enter + update did not work together    
     internalNode.enter().append("circle")
         .attr("class", "node")
-        .attr("cx", function(d) { console.log(d.x); return d.x; })
-        .attr("cy", function(d) { console.log(d.y); return d.y; })
+        .attr("cx", function(d) {  return d.x; })
+        .attr("cy", function(d) {  return d.y; })
         .attr("r", function(d) {return d.radius})
         .style("fill", function(d, i) { return 'black';})
         .on('mousedown', function(d){
             d3.event.stopPropagation();
-            clicked(d)
+            if (d.center) {
+                fallThrough(d);
+            }
         })
-        .style("opacity", 0.2)
+        .style("opacity", magnify? 1: 0.2)
 
     internalLink = graph.selectAll('.link')
         .data(links);
@@ -392,4 +430,42 @@ function initInternalGraph(d) {
 
         internalForce.resume();
     }
+}
+
+function dissolveInternalGraph() {
+    d3.select('.internal-graph').remove();
+}
+
+function dissolveExternalGraph() {
+    d3.select('.external-graph').remove();
+}
+
+function fallThrough(d) {
+    svg.transition()
+        .duration(750)
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(20)translate(" + -d.x + "," + -d.y + ")");
+
+    setTimeout(function(){
+        svg.transition()
+            .duration(750)
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(80)scale(80)translate(" + -d.x + "," + -d.y + ")");
+    }, 750)
+
+    setTimeout(function(){
+        dissolveInternalGraph();
+        dissolveExternalGraph();
+
+        var selection = d3.select('svg g')
+            .call(d3.behavior.zoom().scaleExtent([1, 50]))
+
+        initInternalGraph(d, selection, true);
+        
+        selection.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(200)translate(" + -d.x + "," + -d.y + ")");
+        setTimeout(function(){
+            selection.transition()
+                .duration(1050)
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(1)translate(" + -d.x + "," + -d.y + ")");
+        }, 0)
+
+    }, 1200)
 }
