@@ -1,7 +1,30 @@
+//Initialization
+//Globals
+var width = width(),
+    height = height(),
+    centeredNode = null;
+
+// System
+function system(selection, nodes, name) {
+
+}
+// Animation
+
+// Utilities
+
+//Width and height should be more sophisticated as I add more features.
+function width() {
+    return window.innerWidth
+}
+
+function height() {
+    return window.innerHeight
+}
+
 
 var width = 1400,
     height = 750,
-    centered = null,
+    centeredNode = null,
     haltRadius = 8,
     fill = d3.scale.category10(),
     center = {
@@ -183,13 +206,13 @@ function updateHaltRegion(node) {
 function clicked(d) {
     var x, y, k;
 
-    if (d && centered !== d) {
+    if (d && centeredNode !== d) {
         //$('.temp-text-box').show()
         x = d.x;
         y = d.y;
         k = 40;
-        centered = d;
-        conceal(centered);
+        centeredNode = d;
+        conceal(centeredNode);
         expose(d);
         initInternalGraph(d,svg,false)
     } else {
@@ -197,7 +220,7 @@ function clicked(d) {
         x = width / 2;
         y = height / 2;
         k = 1;
-        centered = null;
+        centeredNode = null;
         conceal(d);
         dissolveInternalGraph();
     }
