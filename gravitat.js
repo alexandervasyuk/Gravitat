@@ -1,9 +1,3 @@
-if (!Array.prototype.last) {
-    Array.prototype.last = function(){
-        return this[this.length - 1];
-    };
-}
-
 //INITIALIZATION
 var width = width(),
     height = height(),
@@ -215,17 +209,13 @@ function system(ext_sel, nodes, name, edit) { //edit: true or false so that i ca
 
     function initiateForce(force) {
         forceStack.push(force);
-        window.force = forceStack.last();
+        window.force = forceStack[forceStack.length - 1];
     }
 
     function killPrecedingForce() {
         forceStack.pop();
-        window.force = forceStack.last();
+        window.force = forceStack[forceStack.length - 1];
     }
-}
-//DESCRIPTION
-function describe(node) {
-
 }
 
 //EVENTS
@@ -263,7 +253,7 @@ function fallThrough() {
 
 //Width and height should be more sophisticated as I add more features.
 function width() {
-    return window.innerWidth - 500
+    return window.innerWidth
 }
 
 function height() {
@@ -305,7 +295,7 @@ function newCoordinates(oldX, oldY, distance, angle) {
     if (angle == 3*Math.PI/2) {
         var newX = oldX + distance*Math.cos(angle)
             newY = oldY + distance*Math.sin(5*Math.PI/4);
-        return [newX, newY]
+        return {x:newX, y:newY}
     } else {
         var newX = oldX + distance*Math.cos(angle)
             newY = oldY + distance*Math.sin(angle);

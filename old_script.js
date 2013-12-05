@@ -183,7 +183,7 @@ function clicked(d) {
 }
 
 function expose(d) {
-    var angles = [5*Math.PI/4, 3*Math.PI/2, 7*Math.PI/4]
+    var angles = [5*Math.PI/4, 3*Math.PI/2, 7*Math.PI/4],
         labels = ['why', 'what', 'how'];
 
     for (i in angles) {
