@@ -6,3 +6,7 @@
   fill: none;
   pointer-events: all;
 }
+
+.link {
+	display: none;
+}

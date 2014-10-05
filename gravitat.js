@@ -6,7 +6,8 @@ var width = width(),
     svg = d3.select('body').append('svg')
             .attr('width', width)
             .attr('height', height),
-    lastKeyDown = null;
+    lastKeyDown = null,
+    animationDone = false;
 //Temporary until db is hooked up
 var nodes = []
 
@@ -84,9 +85,9 @@ function system(ext_sel, nodes, name, edit) { //edit: true or false so that i ca
             .attr("r", function(d) {return d.radius})
             .style("fill", function(d, i) { return fill(i & 3); })
             .style("stroke", function(d, i) { return d3.rgb(fill(i & 3)).darker(2); })
-            .on('click', function(d){
+            .on('mousedown', function(d){
                 d3.event.stopPropagation();
-                clickedNode(d)
+                clickedNode(d);
             })
 
         link = selection.selectAll('.link')
@@ -135,23 +136,21 @@ function system(ext_sel, nodes, name, edit) { //edit: true or false so that i ca
         if (d && nodeInFocus !== d) {
             x = d.x;
             y = d.y;
-            k = 40;
+            k = 125;
             nodeInFocus = d;
-            conceal(nodeInFocus); //?
-            expose(d); //?
-            initInternalGraph(d,svg,false) //?
+            //conceal(nodeInFocus); //?
+            //expose(d); //?
         } else {
             x = width / 2;
             y = height / 2;
             k = 1;
             nodeInFocus = null;
-            conceal(d); //?
-            dissolveInternalGraph(); //?
+            //conceal(d); //?
+            //dissolveInternalGraph(); //?
         }
 
-        svg.transition()
-            .duration(750)
-            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")");
+        zoomIn(width, height, x, y, k, 1500);
+        clearCanvas(d);
     }
 
     //Auxiliary
@@ -245,8 +244,10 @@ function fadeOut(selection, duration) {
         .style("opacity", 1e-6)    
 }
 
-function fallThrough() {
-
+function zoomIn(width, height, x, y, scale, time) {
+    selection.transition()
+            .duration(time)
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + scale + ")translate(" + -x + "," + -y + ")");
 }
 
 // UTILITIES
@@ -268,11 +269,8 @@ function resumeSystem() {
     force.resume();
 }
 
-function expose() {
-
-}
-
-function conceal() {
+function clearCanvas(d) {
+    fadeOut(svg, 1750);
 
 }
 
